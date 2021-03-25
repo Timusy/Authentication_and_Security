@@ -1,9 +1,11 @@
 //jshint esversion:6
+require('dotenv').config();
 const express=require("express");
 const https=require("https");
 const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
 const _=require("lodash");
+const encrypt=require("mongoose-encryption")
 
 const app=express();
 
@@ -14,12 +16,17 @@ app.use(express.static("public"));
 
 mongoose.connect("mongodb://localhost:27017/userDB", { useNewUrlParser: true , useUnifiedTopology: true});
 
-const userSchema={
+const userSchema=new mongoose.Schema({
   email: String,
   password: String
-};
+});
+
+
+userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
 
 const User=mongoose.model("User",userSchema);
+
+console.log(process.env.API_KEY);
 
 app.get("/",function(req,res){
   res.render("home");
@@ -55,6 +62,7 @@ app.post("/login",function(req,res){
       else{
         if(foundUser){
           if(foundUser.password==password){
+          //  console.log(foundUser.password);
             res.render("secrets");
           }
         }
